@@ -1,0 +1,68 @@
+version: "3.3"
+services: 
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "wordpress"
+      MYSQL_DATABASE: "wordpress"
+      MYSQL_USER: "wordpress"
+      MYSQL_PASSWORD: "wordpress"
+    deploy:
+      replicas: 3
+      resources:
+        reservations:
+          cpus: '0.5'
+      placement:
+        constraints: 
+          - node.role == worker
+
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis
+    deploy:
+      replicas: 3
+      resources:
+        reservations:
+          cpus: '0.5'
+      placement:
+        constraints: 
+          - node.role == worker
+    ports:
+      - "6379:6379"
+  wordpress:
+    image: wordpress:php7.3
+    environment:
+      WORDPRESS_DB_HOST: "mysql:3306"
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress 
+      WORDPRESS_DB_NAME: wordpress 
+    deploy:
+      replicas: 3
+      resources:
+        reservations:
+          cpus: '0.5'
+      placement:
+        constraints: 
+          - node.role == worker
+    ports:
+      - "80:80"
+
+  visualizer:
+    image: visualizer
+    deploy:
+      mode: global
+      resources:
+        reservations:
+          cpus: '0.5'
+      placement:
+        constraints: 
+          - node.role == manager
+    volumes:
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - "8080:8080"
+
+
+# docker stack deploy --compose-file stack.yaml   3tier
